@@ -17,16 +17,17 @@ compile: $(gen_dir)/Tile.sv
 $(gen_dir)/Tile.sv: $(wildcard $(src_dir)/scala/*.scala)
 	$(SBT) $(SBT_FLAGS) "run --target-dir=$(gen_dir) --dump-fir"
 
-CXXFLAGS += -std=c++14 -Wall -Wno-unused-variable
+CXXFLAGS += -std=c++14 -Wall -Wno-unused-variable -g
 
-# compile verilator
+# compile verilator -O3
 VERILATOR = verilator --cc --exe
-VERILATOR_FLAGS = --assert -Wno-STMTDLY -O3 --trace --threads $(threads)\
+VERILATOR_FLAGS = --assert -Wno-STMTDLY -O0 --trace --threads $(threads)\
 	--top-module Tile -Mdir $(gen_dir)/VTile.csrc \
-	-CFLAGS "$(CXXFLAGS) -include $(gen_dir)/VTile.csrc/VTile.h" 
+	-CFLAGS "$(CXXFLAGS) -include $(gen_dir)/VTile.csrc/VTile.h"\
+	-I$(gen_dir)/verification
 
-$(base_dir)/VTile: $(gen_dir)/Tile.sv $(src_dir)/cc/top.cc $(src_dir)/cc/mm.cc $(src_dir)/cc/mm.h
-	$(VERILATOR) $(VERILATOR_FLAGS) -o $@ $< $(word 2, $^) $(word 3, $^)
+$(base_dir)/VTile: $(wildcard $(gen_dir)/*.sv) $(wildcard $(gen_dir)/verification/*.sv) $(src_dir)/cc/top.cc $(src_dir)/cc/mm.cc
+	$(VERILATOR) $(VERILATOR_FLAGS) -o $@ $^
 	$(MAKE) -C $(gen_dir)/VTile.csrc -f VTile.mk
 
 verilator: $(base_dir)/VTile

@@ -11,6 +11,16 @@ object Main extends App {
       nastiParams = config.nasti,
       cacheParams = config.cache
     ),
-    args
+    args,
+    firtoolOpts = Array(
+      // "-disable-layers=Verification",
+      // "-disable-layers=Verification.Assert",
+      // "-disable-layers=Verification.Assume",
+      // "-disable-layers=Verification.Cover",
+      "-disable-all-randomization",
+      // "-strip-debug-info",
+      "--lowering-options=disallowPackedArrays",
+      "--lowering-options=disallowLocalVariables"
+    )
   )
 }

@@ -9,7 +9,7 @@ import junctions._
 class MemArbiterIO(params: NastiBundleParameters) extends Bundle {
   val icache = Flipped(new NastiBundle(params))
   val dcache = Flipped(new NastiBundle(params))
-  val nasti = new NastiBundle(params)
+  val nasti  = new NastiBundle(params)
 }
 
 object MemArbiterState extends ChiselEnum {
@@ -23,22 +23,22 @@ class MemArbiter(params: NastiBundleParameters) extends Module {
   val state = RegInit(sIdle)
 
   // Write Address
-  io.nasti.aw.bits := io.dcache.aw.bits
-  io.nasti.aw.valid := io.dcache.aw.valid && state === sIdle
+  io.nasti.aw.bits   := io.dcache.aw.bits
+  io.nasti.aw.valid  := io.dcache.aw.valid && state === sIdle
   io.dcache.aw.ready := io.nasti.aw.ready && state === sIdle
-  io.icache.aw := DontCare
+  io.icache.aw       := DontCare
 
   // Write Data
-  io.nasti.w.bits := io.dcache.w.bits
-  io.nasti.w.valid := io.dcache.w.valid && state === sDCacheWrite
+  io.nasti.w.bits   := io.dcache.w.bits
+  io.nasti.w.valid  := io.dcache.w.valid && state === sDCacheWrite
   io.dcache.w.ready := io.nasti.w.ready && state === sDCacheWrite
-  io.icache.w := DontCare
+  io.icache.w       := DontCare
 
   // Write Ack
-  io.dcache.b.bits := io.nasti.b.bits
+  io.dcache.b.bits  := io.nasti.b.bits
   io.dcache.b.valid := io.nasti.b.valid && state === sDCacheAck
-  io.nasti.b.ready := io.dcache.b.ready && state === sDCacheAck
-  io.icache.b := DontCare
+  io.nasti.b.ready  := io.dcache.b.ready && state === sDCacheAck
+  io.icache.b       := DontCare
 
   // Read Address
   io.nasti.ar.bits := NastiAddressBundle(params)(
@@ -53,8 +53,8 @@ class MemArbiter(params: NastiBundleParameters) extends Module {
   io.icache.ar.ready := io.dcache.ar.ready && !io.dcache.ar.valid
 
   // Read Data
-  io.icache.r.bits := io.nasti.r.bits
-  io.dcache.r.bits := io.nasti.r.bits
+  io.icache.r.bits  := io.nasti.r.bits
+  io.dcache.r.bits  := io.nasti.r.bits
   io.icache.r.valid := io.nasti.r.valid && state === sICacheRead
   io.dcache.r.valid := io.nasti.r.valid && state === sDCacheRead
   io.nasti.r.ready := io.icache.r.ready && state === sICacheRead ||
@@ -94,21 +94,25 @@ class MemArbiter(params: NastiBundleParameters) extends Module {
 }
 
 class TileIO(xlen: Int, nastiParams: NastiBundleParameters) extends Bundle {
-  val host = new HostIO(xlen)
+  val host  = new HostIO(xlen)
   val nasti = new NastiBundle(nastiParams)
 }
 
 object Tile {
-  def apply(config: Config): Tile = new Tile(config.core, config.nasti, config.cache)
+  def apply(config: Config): Tile =
+    new Tile(config.core, config.nasti, config.cache)
 }
 
-class Tile(val coreParams: CoreConfig, val nastiParams: NastiBundleParameters, val cacheParams: CacheConfig)
-    extends Module {
-  val io = IO(new TileIO(coreParams.xlen, nastiParams))
-  val core = Module(new Core(coreParams))
+class Tile(
+    val coreParams:  CoreConfig,
+    val nastiParams: NastiBundleParameters,
+    val cacheParams: CacheConfig
+) extends Module {
+  val io     = IO(new TileIO(coreParams.xlen, nastiParams))
+  val core   = Module(new Core(coreParams))
   val icache = Module(new Cache(cacheParams, nastiParams, coreParams.xlen))
   val dcache = Module(new Cache(cacheParams, nastiParams, coreParams.xlen))
-  val arb = Module(new MemArbiter(nastiParams))
+  val arb    = Module(new MemArbiter(nastiParams))
 
   io.host <> core.io.host
   core.io.icache <> icache.io.cpu

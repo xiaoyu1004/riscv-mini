@@ -10,14 +10,14 @@ object Control {
   val N = false.B
 
   // pc_sel
-  val PC_4 = 0.U(2.W)
+  val PC_4   = 0.U(2.W)
   val PC_ALU = 1.U(2.W)
-  val PC_0 = 2.U(2.W)
+  val PC_0   = 2.U(2.W)
   val PC_EPC = 3.U(2.W)
 
   // A_sel
   val A_XXX = 0.U(1.W)
-  val A_PC = 0.U(1.W)
+  val A_PC  = 0.U(1.W)
   val A_RS1 = 1.U(1.W)
 
   // B_sel
@@ -37,23 +37,23 @@ object Control {
   // br_type
   val BR_XXX = 0.U(3.W)
   val BR_LTU = 1.U(3.W)
-  val BR_LT = 2.U(3.W)
-  val BR_EQ = 3.U(3.W)
+  val BR_LT  = 2.U(3.W)
+  val BR_EQ  = 3.U(3.W)
   val BR_GEU = 4.U(3.W)
-  val BR_GE = 5.U(3.W)
-  val BR_NE = 6.U(3.W)
+  val BR_GE  = 5.U(3.W)
+  val BR_NE  = 6.U(3.W)
 
   // st_type
   val ST_XXX = 0.U(2.W)
-  val ST_SW = 1.U(2.W)
-  val ST_SH = 2.U(2.W)
-  val ST_SB = 3.U(2.W)
+  val ST_SW  = 1.U(2.W)
+  val ST_SH  = 2.U(2.W)
+  val ST_SB  = 3.U(2.W)
 
   // ld_type
   val LD_XXX = 0.U(3.W)
-  val LD_LW = 1.U(3.W)
-  val LD_LH = 2.U(3.W)
-  val LD_LB = 3.U(3.W)
+  val LD_LW  = 1.U(3.W)
+  val LD_LH  = 2.U(3.W)
+  val LD_LB  = 3.U(3.W)
   val LD_LHU = 4.U(3.W)
   val LD_LBU = 5.U(3.W)
 
@@ -111,7 +111,7 @@ object Control {
     OR    -> List(PC_4  , A_RS1,  B_RS2, IMM_X, ALU_OR    , BR_XXX, N, ST_XXX, LD_XXX, WB_ALU, Y, CSR.N, N),
     AND   -> List(PC_4  , A_RS1,  B_RS2, IMM_X, ALU_AND   , BR_XXX, N, ST_XXX, LD_XXX, WB_ALU, Y, CSR.N, N),
     FENCE -> List(PC_4  , A_XXX,  B_XXX, IMM_X, ALU_XXX   , BR_XXX, N, ST_XXX, LD_XXX, WB_ALU, N, CSR.N, N),
-    FENCEI-> List(PC_0  , A_XXX,  B_XXX, IMM_X, ALU_XXX   , BR_XXX, Y, ST_XXX, LD_XXX, WB_ALU, N, CSR.N, N),
+    FENCE_I-> List(PC_0  , A_XXX,  B_XXX, IMM_X, ALU_XXX   , BR_XXX, Y, ST_XXX, LD_XXX, WB_ALU, N, CSR.N, N),
     CSRRW -> List(PC_0  , A_RS1,  B_XXX, IMM_X, ALU_COPY_A, BR_XXX, Y, ST_XXX, LD_XXX, WB_CSR, Y, CSR.W, N),
     CSRRS -> List(PC_0  , A_RS1,  B_XXX, IMM_X, ALU_COPY_A, BR_XXX, Y, ST_XXX, LD_XXX, WB_CSR, Y, CSR.S, N),
     CSRRC -> List(PC_0  , A_RS1,  B_XXX, IMM_X, ALU_COPY_A, BR_XXX, Y, ST_XXX, LD_XXX, WB_CSR, Y, CSR.C, N),
@@ -120,48 +120,51 @@ object Control {
     CSRRCI-> List(PC_0  , A_XXX,  B_XXX, IMM_Z, ALU_XXX   , BR_XXX, Y, ST_XXX, LD_XXX, WB_CSR, Y, CSR.C, N),
     ECALL -> List(PC_4  , A_XXX,  B_XXX, IMM_X, ALU_XXX   , BR_XXX, N, ST_XXX, LD_XXX, WB_CSR, N, CSR.P, N),
     EBREAK-> List(PC_4  , A_XXX,  B_XXX, IMM_X, ALU_XXX   , BR_XXX, N, ST_XXX, LD_XXX, WB_CSR, N, CSR.P, N),
-    ERET  -> List(PC_EPC, A_XXX,  B_XXX, IMM_X, ALU_XXX   , BR_XXX, Y, ST_XXX, LD_XXX, WB_CSR, N, CSR.P, N),
+    MRET  -> List(PC_EPC, A_XXX,  B_XXX, IMM_X, ALU_XXX   , BR_XXX, Y, ST_XXX, LD_XXX, WB_CSR, N, CSR.P, N),
     WFI   -> List(PC_4  , A_XXX,  B_XXX, IMM_X, ALU_XXX   , BR_XXX, N, ST_XXX, LD_XXX, WB_ALU, N, CSR.N, N))
   // format: on
 }
 
 class ControlSignals extends Bundle {
-  val inst = Input(UInt(32.W))
-  val pc_sel = Output(UInt(2.W))
+  val inst      = Input(UInt(32.W))
+  val pc_sel    = Output(UInt(2.W))
   val inst_kill = Output(Bool())
-  val A_sel = Output(UInt(1.W))
-  val B_sel = Output(UInt(1.W))
-  val imm_sel = Output(UInt(3.W))
-  val alu_op = Output(UInt(4.W))
-  val br_type = Output(UInt(3.W))
-  val st_type = Output(UInt(2.W))
-  val ld_type = Output(UInt(3.W))
-  val wb_sel = Output(UInt(2.W))
-  val wb_en = Output(Bool())
-  val csr_cmd = Output(UInt(3.W))
-  val illegal = Output(Bool())
+  val A_sel     = Output(UInt(1.W))
+  val B_sel     = Output(UInt(1.W))
+  val imm_sel   = Output(UInt(3.W))
+  val alu_op    = Output(UInt(4.W))
+  val br_type   = Output(UInt(3.W))
+  val st_type   = Output(UInt(2.W))
+  val ld_type   = Output(UInt(3.W))
+  val wb_sel    = Output(UInt(2.W))
+  val wb_en     = Output(Bool())
+  val csr_cmd   = Output(UInt(3.W))
+  val illegal   = Output(Bool())
 }
 
 class Control extends Module {
-  val io = IO(new ControlSignals)
+  val io          = IO(new ControlSignals)
   val ctrlSignals = ListLookup(io.inst, Control.default, Control.map)
 
+  val pc_sel :: a_sel :: b_sel :: imm_sel :: alu_op :: br_type :: inst_kill :: st_type :: ld_type :: wb_sel :: wb_en :: csr_cmd :: illegal :: Nil =
+    ctrlSignals
+
   // Control signals for Fetch
-  io.pc_sel := ctrlSignals(0)
-  io.inst_kill := ctrlSignals(6).asBool
+  io.pc_sel    := pc_sel
+  io.inst_kill := inst_kill
 
   // Control signals for Execute
-  io.A_sel := ctrlSignals(1)
-  io.B_sel := ctrlSignals(2)
-  io.imm_sel := ctrlSignals(3)
-  io.alu_op := ctrlSignals(4)
-  io.br_type := ctrlSignals(5)
-  io.st_type := ctrlSignals(7)
+  io.A_sel   := a_sel
+  io.B_sel   := b_sel
+  io.imm_sel := imm_sel
+  io.alu_op  := alu_op
+  io.br_type := br_type
+  io.st_type := st_type
 
   // Control signals for Write Back
-  io.ld_type := ctrlSignals(8)
-  io.wb_sel := ctrlSignals(9)
-  io.wb_en := ctrlSignals(10).asBool
-  io.csr_cmd := ctrlSignals(11)
-  io.illegal := ctrlSignals(12)
+  io.ld_type := ld_type
+  io.wb_sel  := wb_sel
+  io.wb_en   := wb_en
+  io.csr_cmd := csr_cmd
+  io.illegal := illegal
 }

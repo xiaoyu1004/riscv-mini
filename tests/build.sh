@@ -1,0 +1,2 @@
+riscv32-unknown-elf-objcopy -O binary /home/xiaoyu/workspace/riscv-mini/tests/rv32ui-p-add /home/xiaoyu/workspace/riscv-mini/tests/rv32ui-p-add.bin
+od -An -tx4 -w4 -v --endian=little /home/xiaoyu/workspace/riscv-mini/tests/rv32ui-p-add.bin | sed 's/^ //' > /home/xiaoyu/workspace/riscv-mini/tests/rv32ui-p-add.hex

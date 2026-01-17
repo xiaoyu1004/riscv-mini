@@ -4,7 +4,11 @@ package mini
 
 import junctions.NastiBundleParameters
 
-case class Config(core: CoreConfig, cache: CacheConfig, nasti: NastiBundleParameters)
+case class Config(
+    core:  CoreConfig,
+    cache: CacheConfig,
+    nasti: NastiBundleParameters
+)
 
 object MiniConfig {
   def apply(): Config = {
