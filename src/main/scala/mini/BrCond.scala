@@ -31,7 +31,8 @@ class BrCondSimple(val xlen: Int) extends BrCond {
       ((io.br_type === BR_LT) && lt) ||
       ((io.br_type === BR_GE) && ge) ||
       ((io.br_type === BR_LTU) && ltu) ||
-      ((io.br_type === BR_GEU) && geu)
+      ((io.br_type === BR_GEU) && geu) ||
+      (io.br_type === BR_JMP)
 }
 
 class BrCondArea(val xlen: Int) extends BrCond {
@@ -50,5 +51,6 @@ class BrCondArea(val xlen: Int) extends BrCond {
       ((io.br_type === BR_LT) && lt) ||
       ((io.br_type === BR_GE) && ge) ||
       ((io.br_type === BR_LTU) && ltu) ||
-      ((io.br_type === BR_GEU) && geu)
+      ((io.br_type === BR_GEU) && geu) ||
+      (io.br_type === BR_JMP)
 }

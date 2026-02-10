@@ -24,12 +24,10 @@ class CoreIO(xlen: Int) extends Bundle {
 }
 
 class Core(val conf: CoreConfig) extends Module {
-  val io    = IO(new CoreIO(conf.xlen))
-  val dpath = Module(new Datapath(conf))
-  val ctrl  = Module(new Control)
+  val io   = IO(new CoreIO(conf.xlen))
+  val pipe = Module(new Pipeline(conf))
 
-  io.host <> dpath.io.host
-  dpath.io.icache <> io.icache
-  dpath.io.dcache <> io.dcache
-  dpath.io.ctrl <> ctrl.io
+  io.host <> pipe.io.host
+  pipe.io.icache <> io.icache
+  pipe.io.dcache <> io.dcache
 }

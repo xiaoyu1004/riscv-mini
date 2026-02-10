@@ -132,22 +132,22 @@ void mm_magic_t::tick(
 
 void load_mem(char *mem, const char *fn)
 {
-    int start = 0;
-    std::ifstream in(fn);
-    if (!in)
-    {
-        std::cerr << "could not open " << fn << std::endl;
-        exit(EXIT_FAILURE);
-    }
+//     int start = 0;
+//     std::ifstream in(fn);
+//     if (!in)
+//     {
+//         std::cerr << "could not open " << fn << std::endl;
+//         exit(EXIT_FAILURE);
+//     }
 
-    std::string line;
-    while (std::getline(in, line))
-    {
-#define parse_nibble(c) ((c) >= 'a' ? (c) - 'a' + 10 : (c) - '0')
-        for (int i = line.length() - 2, j = 0; i >= 0; i -= 2, j++)
-        {
-            mem[start + j] = (parse_nibble(line[i]) << 4) | parse_nibble(line[i + 1]);
-        }
-        start += line.length() / 2;
-    }
+//     std::string line;
+//     while (std::getline(in, line))
+//     {
+// #define parse_nibble(c) ((c) >= 'a' ? (c) - 'a' + 10 : (c) - '0')
+//         for (int i = line.length() - 2, j = 0; i >= 0; i -= 2, j++)
+//         {
+//             mem[start + j] = (parse_nibble(line[i]) << 4) | parse_nibble(line[i + 1]);
+//         }
+//         start += line.length() / 2;
+//     }
 }

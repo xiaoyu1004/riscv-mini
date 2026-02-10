@@ -4,6 +4,7 @@ package mini
 
 import chisel3._
 import chisel3.util._
+import chisel3.util.experimental.BoringUtils
 
 object CSR {
   val N = 0.U(3.W)
@@ -206,7 +207,8 @@ class CSR(val xlen: Int) extends Module {
     Instructions.MRET   -> List(Control.N, Control.N, Control.Y)
   )
 
-  val isEcall :: isEbreak :: isEret :: Nil = ListLookup(io.inst, List(Control.N, Control.N, Control.N), privDecTable)
+  val isEcall :: isEbreak :: isEret :: Nil =
+    ListLookup(io.inst, List(Control.N, Control.N, Control.N), privDecTable)
 
   // println("isEcall type: " + isEcall.getClass.getName)
 
@@ -219,7 +221,8 @@ class CSR(val xlen: Int) extends Module {
       CSR.C -> (io.out & ~io.in)
     )
   )
-  val wen = (io.cmd === CSR.W) || (((io.cmd === CSR.S) || (io.cmd === CSR.C)) && wdata.orR)
+  val wen =
+    (io.cmd === CSR.W) || (((io.cmd === CSR.S) || (io.cmd === CSR.C)) && wdata.orR)
 
   val iaddrInvalid = io.pc_check && io.addr(1)
   val laddrInvalid = MuxLookup(io.ld_type, false.B)(

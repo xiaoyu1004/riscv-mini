@@ -1,0 +1,177 @@
+{
+    "signal": [
+        [
+            "read",
+            {
+                "name": "clk",
+                "wave": "P............................"
+            },
+            {
+                "name": "reset",
+                "wave": "10..........................."
+            },
+            {
+                "name": "req_valid",
+                "wave": "x010101....."
+            },
+            {
+                "name": "addr",
+                "wave": "x.3x4x5..678x",
+                "data": [
+                    "addr0",
+                    "addr1",
+                    "addr2",
+                    "addr3",
+                    "addr4",
+                    "addr5"
+                ]
+            },
+            {
+                "name": "state",
+                "wave": "x=.3=44.=5678",
+                "data": [
+                    "sIdle",
+                    "sReadCache",
+                    "sIdle",
+                    "sReadCache",
+                    "sRefill",
+                    "sIdle",
+                    "sReadCache",
+                    "sReadCache",
+                    "sReadCache",
+                    "sReadCache"
+                ]
+            },
+            {
+                "name": "ren",
+                "wave": "x010101....."
+            },
+            {
+                "name": "read_wrap_out",
+                "wave": "x0.....10...."
+            },
+            {
+                "name": "hit",
+                "wave": "x0.10....1..."
+            },
+            {
+                "name": "is_alloc",
+                "wave": "x0.....10...."
+            },
+            {
+                "name": "resp_valid",
+                "wave": "x1...0..1...."
+            },
+            {
+                "name": "resp_data",
+                "wave": "x..3x...45678",
+                "data": [
+                    "data0",
+                    "data1",
+                    "data2",
+                    "data3",
+                    "data4",
+                    "data5"
+                ]
+            }
+        ],
+        {},
+        [
+            "write",
+            {
+                "name": "clk",
+                "wave": "P............................"
+            },
+            {
+                "name": "reset",
+                "wave": "10..........................."
+            },
+            {
+                "name": "req_valid",
+                "wave": "x01010...10"
+            },
+            {
+                "name": "addr",
+                "wave": "x.3x4x...5x",
+                "data": [
+                    "addr0",
+                    "addr1",
+                    "addr2",
+                    "addr3",
+                    "addr4",
+                    "addr5"
+                ]
+            },
+            {
+                "name": "wdata",
+                "wave": "x.3x4x...5x",
+                "data": [
+                    "data0",
+                    "data1",
+                    "data2",
+                    "data3"
+                ]
+            },
+            {
+                "name": "state",
+                "wave": "x=.3=44.4=55.555.5=",
+                "data": [
+                    "sIdle",
+                    "sWriteCache",
+                    "sIdle",
+                    "sWriteCache",
+                    "sRefill",
+                    "sWriteCache",
+                    "sIdle",
+                    "sWriteCache",
+                    "sWriteBack",
+                    "sWriteAck",
+                    "sRefillReady",
+                    "sRefill",
+                    "sWriteCache",
+                    "sIdle"
+                ]
+            },
+            {
+                "name": "wen",
+                "wave": "x0.10..1.0......1.0"
+            },
+            {
+                "name": "read_wrap_out",
+                "wave": "x0.....10.......10"
+            },
+            {
+                "name": "write_wrap_out",
+                "wave": "x0..........10"
+            },
+            {
+                "name": "hit",
+                "wave": "x0.10......"
+            },
+            {
+                "name": "is_dirty",
+                "wave": "x0........10"
+            },
+            {
+                "name": "is_alloc",
+                "wave": "x0.....10.......10"
+            },
+            {
+                "name": "is_alloc_reg",
+                "wave": "x.0.....10.......10"
+            },
+            {
+                "name": "resp_valid",
+                "wave": "x1.010...10.......1"
+            }
+        ]
+    ],
+    "config": {
+        "hscale": 3
+    },
+    "head": {
+        "text": "fetch",
+        "tick": 0,
+        "every": 1
+    }
+}

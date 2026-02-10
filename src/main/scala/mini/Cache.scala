@@ -82,7 +82,7 @@ class Cache(val p: CacheConfig, val nasti: NastiBundleParameters, val xlen: Int)
   val is_alloc_reg = RegNext(is_alloc)
 
   val hit     = Wire(Bool())
-  val wen     = is_write && (hit || is_alloc_reg) && !io.cpu.abort || is_alloc
+  val wen     = (is_write && (hit || is_alloc_reg) && !io.cpu.abort) || is_alloc
   val ren     = !wen && (is_idle || is_read) && io.cpu.req.valid
   val ren_reg = RegNext(ren)
 
@@ -105,9 +105,9 @@ class Cache(val p: CacheConfig, val nasti: NastiBundleParameters, val xlen: Int)
   io.cpu.resp.bits.data := VecInit.tabulate(nWords)(i =>
     read((i + 1) * xlen - 1, i * xlen)
   )(off_reg)
-  io.cpu.resp.valid := is_idle || is_read && hit || is_alloc_reg && !cpu_mask.orR
+  io.cpu.resp.valid := is_idle || (is_read && hit) || (is_alloc_reg && !cpu_mask.orR)
 
-  when(io.cpu.resp.valid) {
+  when(io.cpu.req.valid && io.cpu.resp.valid) {
     addr_reg := addr
     cpu_data := io.cpu.req.bits.data
     cpu_mask := io.cpu.req.bits.mask

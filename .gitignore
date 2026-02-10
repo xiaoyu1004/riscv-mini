@@ -31,6 +31,8 @@ tests/64/*
 novas_dump.log
 ucli.key
 
+tests/*
+!tests/*.*
+
 *.dump
 *.hex
-

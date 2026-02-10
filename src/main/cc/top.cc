@@ -1,11 +1,16 @@
 #include <verilated.h>
 #include <iostream>
+#include <vector>
+#include <sstream>
+#include <iomanip>
+#include <fstream>
 
 #if VM_TRACE
 #include <verilated_vcd_c.h> // Trace file format header
 #endif
 
 #include "mm.h"
+#include "rvcsim/cpu.h"
 
 using namespace std;
 
@@ -24,6 +29,7 @@ VTile *top; // target design
 VerilatedVcdC *tfp;
 #endif
 mm_magic_t *mem; // target memory
+Cpu *cpu;
 
 // TODO Provide command-line options like vcd filename, timeout count, etc.
 const long timeout = 100000L;
@@ -82,12 +88,99 @@ void tick()
     main_time++;
 }
 
+std::vector<std::string> g_traceVec;
+
+int verify(Cpu *cpu, VTile *top)
+{
+    if (!top->io_trace_wb_valid || top->io_trace_wb_busy)
+        return 0;
+
+    cpu->Execute();
+    TraceInfo traceInfo = cpu->GetTraceInfo();
+
+    std::stringstream ss;
+    ss << std::hex << std::showbase << std::setfill('0');
+    ss << "[ref] pc="
+       << (uint32_t)traceInfo.pc
+       << ", etype="
+       << (uint32_t)traceInfo.etype
+       << ", rf_wen="
+       << (uint32_t)traceInfo.rf_wen
+       << ", rf_widx="
+       << (uint32_t)traceInfo.rf_widx
+       << ", rf_wdata="
+       << (uint32_t)traceInfo.rf_wdata
+       << "; "
+       << "[cpu] valid="
+       << (uint32_t)top->io_trace_wb_valid
+       << ", busy="
+       << (uint32_t)top->io_trace_wb_busy
+       << ", pc="
+       << (uint32_t)top->io_trace_wb_pc
+       << ", inst="
+       << (uint32_t)top->io_trace_wb_inst
+       << ", etype="
+       << (uint32_t)top->io_trace_wb_cause
+       << ", rf_wen="
+       << (uint32_t)top->io_trace_wb_rf_wen
+       << ", rf_widx="
+       << (uint32_t)top->io_trace_wb_rf_widx
+       << ", rf_wdata="
+       << (uint32_t)top->io_trace_wb_rf_wdata;
+
+    g_traceVec.push_back(ss.str());
+
+    if (traceInfo.pc != top->io_trace_wb_pc)
+        return -1;
+
+    bool has_expt = top->io_trace_wb_expt;
+    bool ref_has_expt = traceInfo.etype != ExceptionType::OK;
+
+    if (has_expt != ref_has_expt)
+    {
+        return -1;
+    }
+
+    if (has_expt || ref_has_expt)
+    {
+        if (traceInfo.etype != top->io_trace_wb_cause)
+            return -1;
+    }
+
+    if (traceInfo.rf_wen != top->io_trace_wb_rf_wen)
+        return -1;
+
+    if (traceInfo.rf_wen && (traceInfo.rf_widx != top->io_trace_wb_rf_widx))
+        return -1;
+    else if (traceInfo.rf_widx != 0 && traceInfo.rf_wdata != top->io_trace_wb_rf_wdata)
+        return -1;
+
+    return 0;
+}
+
 int main(int argc, char **argv)
 {
-    Verilated::commandArgs(argc, argv);                 // Remember args
-    top = new VTile;                                    // target design
-    mem = new mm_magic_t(128L << 20, 8);                // target memory
-    load_mem(mem->get_data(), (const char *)(argv[1])); // load hex
+    if (argc != 3)
+        LOG_FATAL("usage: ./VTile binfile vcdfile");
+
+    std::ifstream fs(argv[1], std::ios::binary);
+    if (!fs.is_open())
+        LOG_FATAL("file open fail, file path:%s", argv[1]);
+
+    fs.seekg(0, std::ios::end);
+    std::streamsize size = fs.tellg();
+    fs.seekg(0, std::ios::beg);
+
+    char *binary = new char[size];
+    fs.read(binary, size);
+
+    Verilated::commandArgs(argc, argv);  // Remember args
+    top = new VTile;                     // target design
+    mem = new mm_magic_t(128L << 20, 8); // target memory
+    memcpy(mem->get_data(), binary, size);
+
+    cpu = new Cpu;
+    cpu->LoadBinary((uint8_t *)binary, size);
 
 #if VM_TRACE                      // If verilator was invoked with --trace
     Verilated::traceEverOn(true); // Verilator must compute traced signals
@@ -113,9 +206,19 @@ int main(int argc, char **argv)
     do
     {
         tick();
+        if (verify(cpu, top) != 0)
+        {
+            for (int i = 0; i < g_traceVec.size(); i++)
+            {
+                std::cout << "index=" << i << "; " << g_traceVec[i] << std::endl;
+            }
+
+            // return EXIT_FAILURE;
+            break;
+        }
     } while (!top->io_host_tohost && main_time < timeout);
 
-    int retcode = top->io_host_tohost;
+    int retcode = top->io_host_tohost + 1;
 
     // Run for 10 more clocks
     for (size_t i = 0; i < 10; i++)
@@ -132,10 +235,7 @@ int main(int argc, char **argv)
     else
     {
         cerr << "Simulation completed at time " << main_time << " (cycle " << main_time / 10 << ")" << endl;
-        if (retcode)
-        {
-            cerr << std::hex << "TOHOST = " << retcode << endl;
-        }
+        cerr << std::hex << "TOHOST = " << retcode << endl;
     }
 
 #if VM_TRACE
@@ -145,10 +245,12 @@ int main(int argc, char **argv)
 #endif
 
     // unsigned gp = *reinterpret_cast<unsigned *>(mem->read(tohost).data());
-    cout << "Finishing simulation! " << ((retcode == -1) ? "PASS" : "FAIL") << " retcode=" << retcode << "\n";
+    cout << "Finishing simulation! " << ((retcode == 0) ? "PASS" : "FAIL") << " retcode=" << retcode << "\n";
 
     delete top;
     delete mem;
+    delete cpu;
+    delete[] binary;
 
-    return retcode == -1 ? EXIT_SUCCESS : EXIT_FAILURE;
+    return retcode == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }

@@ -4,6 +4,7 @@ package mini
 
 import chisel3._
 import chisel3.util._
+import chisel3.util.experimental.BoringUtils
 import junctions._
 
 class MemArbiterIO(params: NastiBundleParameters) extends Bundle {
@@ -93,9 +94,22 @@ class MemArbiter(params: NastiBundleParameters) extends Module {
   }
 }
 
+class TraceIO(xlen: Int) extends Bundle {
+  val wb_pc       = Output(UInt(xlen.W))
+  val wb_inst     = Output(UInt(xlen.W))
+  val wb_busy     = Output(Bool())
+  val wb_rf_wen   = Output(Bool())
+  val wb_rf_widx  = Output(UInt(5.W))
+  val wb_rf_wdata = Output(UInt(xlen.W))
+  val wb_expt     = Output(Bool())
+  val wb_cause    = Output(UInt(12.W))
+  val wb_valid    = Output(Bool())
+}
+
 class TileIO(xlen: Int, nastiParams: NastiBundleParameters) extends Bundle {
   val host  = new HostIO(xlen)
   val nasti = new NastiBundle(nastiParams)
+  val trace = new TraceIO(xlen)
 }
 
 object Tile {
@@ -120,4 +134,23 @@ class Tile(
   arb.io.icache <> icache.io.nasti
   arb.io.dcache <> dcache.io.nasti
   io.nasti <> arb.io.nasti
+
+  // trace
+  io.trace.wb_pc   := WireInit(BoringUtils.tapAndRead(core.pipe.writeback.ws_pipe_r.pc))
+  io.trace.wb_inst := WireInit(BoringUtils.tapAndRead(core.pipe.writeback.ws_pipe_r.inst))
+  io.trace.wb_busy := WireInit(BoringUtils.tapAndRead(core.pipe.writeback.ws_busy))
+  io.trace.wb_rf_wen := WireInit(
+    BoringUtils.tapAndRead(core.pipe.writeback.rf_wen)
+  )
+  io.trace.wb_rf_widx := WireInit(
+    BoringUtils.tapAndRead(core.pipe.writeback.rf_waddr)
+  )
+  io.trace.wb_rf_wdata := WireInit(
+    BoringUtils.tapAndRead(core.pipe.writeback.rf_wdata)
+  )
+  io.trace.wb_expt  := WireInit(BoringUtils.tapAndRead(core.pipe.writeback.csr.io.expt))
+  io.trace.wb_cause := WireInit(BoringUtils.tapAndRead(core.pipe.writeback.csr.cause))
+  io.trace.wb_valid := WireInit(
+    BoringUtils.tapAndRead(core.pipe.writeback.ws_valid_r)
+  )
 }
